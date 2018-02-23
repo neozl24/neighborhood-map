@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Map</title>
+  <title>武汉地图</title>
   <style>
   html,
   body {
@@ -12,39 +12,72 @@
     margin: 0;
     padding: 0;
   }
-
-  #map {
+  .options-container {
+    position: relative;
+    padding: 20px;
+    height: 100%;
+    width: 300px;
+    box-sizing: border-box;
+    line-height: 30px;
+    text-align: left;
+    background: #30404f;
+    color: #fff;
+  }
+  .filter-input {
+    width: 260px;
+    height: 30px;
+    padding: 0 15px;
+    box-sizing: border-box;
+    border: none;
+    outline: none;
+    font-size: 14px;
+  }
+  .map-container {
     position: absolute;
     top: 0;
-    left: 362px;
+    left: 300px;
     right: 0;
     height: 100%;
   }
-  .options-box {
-    padding: 10px 10px 30px 10px;
-    height: 100%;
-    width: 340px;
-    line-height: 35px;
-    text-align: left;
-    border: 1px solid #999;
-    border-radius: 3px;
-    background: #fff;
+  .map-topbar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 40px;
+    background-color: #1c272f;
+    color: #fff;
+    z-index: 100;
+  }
+  .map-title {
+    text-align: center;
+    margin: 0;
+    line-height: 40px;
+  }
+  .map {
+    position: absolute;
+    top: 40px;
+    bottom: 0;
+    left: 0;
+    right: 0;
   }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <div class="options-box">
-      <h1>Find your new home in Wuhan</h1>
-      <div>
-        <input type="button" id="show-listings" value="Show Listings">
-        <input type="button" id="hide-listings" value="Hide Listings">
-      </div>
-    </div>
+  <div class="options-container">
+    <input type="text" class="filter-input">
   </div>
-  <div id="map"></div>
+  <div class="map-container">
+    <div class="map-topbar">
+      <h3 class="map-title">Wuhan Location</h3>
+    </div>
+    <div class="map" id="map"></div>
+  </div>
+
+  <script type="text/javascript" src="https://cdn.bootcss.com/knockout/3.4.2/knockout-min.js"></script>
   <script type="text/javascript">
+
   var map;
 
   function initMap() {
