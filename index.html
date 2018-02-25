@@ -14,28 +14,46 @@
   }
   .options-container {
     position: relative;
-    padding: 20px;
+    padding: 30px 20px;
     height: 100%;
-    width: 300px;
+    width: 360px;
     box-sizing: border-box;
     line-height: 30px;
     text-align: left;
     background: #30404f;
     color: #fff;
+    font-size: 0;
   }
   .filter-input {
     width: 260px;
     height: 30px;
-    padding: 0 15px;
+    padding: 0 10px;
     box-sizing: border-box;
     border: none;
     outline: none;
     font-size: 14px;
   }
+  .filter-button {
+    width: 60px;
+    height: 30px;
+    vertical-align: top;
+    background-color: #0087fa;
+    color: #fff;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .filter-button:hover {
+    opacity: 0.8;
+  }
+  .filter-button:active {
+    opacity: 0.9;
+  }
   .map-container {
     position: absolute;
     top: 0;
-    left: 300px;
+    left: 360px;
     right: 0;
     height: 100%;
   }
@@ -66,7 +84,8 @@
 
 <body>
   <div class="options-container">
-    <input type="text" class="filter-input">
+    <input type="text" id="place-text" class="filter-input" placeholder="示例:酒店、中山公园、解放大道66号">
+    <input type="button" id="filter-button" class="filter-button" value="筛 选">
   </div>
   <div class="map-container">
     <div class="map-topbar">
@@ -88,6 +107,120 @@
       },
       zoom: 13
     });
+
+    var placeText = document.getElementById('place-text');
+    var filterButton = document.getElementById('filter-button');
+    var searchBox = new google.maps.places.SearchBox(placeText);
+
+    var placeMarkers = [];
+
+    // 将搜索范围限定在屏幕地图范围之内
+    searchBox.setBounds(map.getBounds());
+
+    // 当用户选择了下拉列表中的某一项时，会触发事件，searchbox将得到更多详细信息
+    searchBox.addListener('places_changed', function() {
+      searchBoxPlaces(this);
+    });
+
+    filterButton.addEventListener('click', filterPlaces);
+
+    function searchBoxPlaces(searchBox) {
+      hideMarkers(placeMarkers);
+      var places = searchBox.getPlaces();
+      if (places.length == 0) {
+        window.alert('找不到对应地点');
+      } else {
+        // For each place, get the icon, name and location.
+        createMarkersForPlaces(places);
+        console.log(places);
+      }
+    }
+
+    function createMarkersForPlaces(places) {
+      var bounds = new google.maps.LatLngBounds();
+      for (var i = 0; i < places.length; i++) {
+        var place = places[i];
+        var icon = {
+          url: place.icon,
+          size: new google.maps.Size(35, 35),
+          origin: new google.maps.Point(0, 0),
+          anchor: new google.maps.Point(15, 34),
+          scaledSize: new google.maps.Size(25, 25)
+        };
+        // Create a marker for each place.
+        var marker = new google.maps.Marker({
+          map: map,
+          icon: icon,
+          title: place.name,
+          position: place.geometry.location,
+          id: place.place_id
+        });
+        // Create a single infowindow to be used with the place details information
+        // so that only one is open at once.
+        var placeInfoWindow = new google.maps.InfoWindow();
+        // If a marker is clicked, do a place details search on it in the next function.
+        marker.addListener('click', function() {
+          if (placeInfoWindow.marker == this) {
+            console.log("This infowindow already is on this marker!");
+          } else {
+            getPlacesDetails(this, placeInfoWindow);
+          }
+        });
+        placeMarkers.push(marker);
+        if (place.geometry.viewport) {
+          // Only geocodes have viewport.
+          bounds.union(place.geometry.viewport);
+        } else {
+          bounds.extend(place.geometry.location);
+        }
+      }
+      map.fitBounds(bounds);
+    }
+
+    function filterPlaces() {
+      console.log(12142);
+      var bounds = map.getBounds();
+        hideMarkers(placeMarkers);
+        var placesService = new google.maps.places.PlacesService(map);
+        placesService.textSearch({
+          query: placeText.value,
+          bounds: bounds
+        }, function(results, status) {
+          if (status === google.maps.places.PlacesServiceStatus.OK) {
+            createMarkersForPlaces(results);
+          }
+        });
+    }
+
+    function hideMarkers(markers) {
+      for (var i = 0; i < markers.length; i++) {
+        markers[i].setMap(null);
+      }
+    }
+
+    // 用来表示地标(marker)的类
+    function Marker(name) {
+      var self = this;
+      self.name = name;
+      // 新建这个地标时，默认是不处于高亮状态的，但这个状态会在之后的点击时被触发
+      self.highlight = ko.observable(false);
+    }
+
+    // 用来表示地标的数组
+    function MapViewModel() {
+      var self = this;
+      self.markers = ko.observableArray([
+        new Marker("Zhongshan")
+      ]);
+
+      // 筛选地点函数，会在输入框值发生改变时被触发
+      self.filterMarkers = function() {
+        self.markers.push(new Marker(""));
+      }
+    }
+
+    ko.applyBindings(new MapViewModel());
+
     var bounds = new google.maps.LatLngBounds();
 
     var zhongshanPark = {
@@ -107,7 +240,7 @@
     });
     marker.addListener('click', function() {
       infoWindow.open(map, marker);
-      // populateInfoWindow(this, infoWindow);
+      populateInfoWindow(this, infoWindow);
       // bounds.extend(marker.position);
     });
 
@@ -124,7 +257,7 @@
   }
   </script>
 
-  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAbrsJBAgSnyTQOpOT-WSpOfSnRx99HIrE&v=3&callback=initMap">
+  <script async defer src="https://maps.googleapis.com/maps/api/js?libraries=places&key=AIzaSyAbrsJBAgSnyTQOpOT-WSpOfSnRx99HIrE&v=3&callback=initMap">
   </script>
 </body>
 
