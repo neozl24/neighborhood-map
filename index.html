@@ -105,7 +105,7 @@
         lat: 30.587,
         lng: 114.272
       },
-      zoom: 12
+      zoom: 13
     });
 
     var placeText = document.getElementById('place-text');
@@ -227,7 +227,10 @@
     var locations = [
       {title: '中山公园', location: {lat: 30.582100, lng: 114.272900}},
       {title: '民生银行大厦', location: {lat: 30.5943940, lng: 114.272755}},
-      {title: '新佳丽时尚广场', location: {lat: 30.5788516, lng: 114.2911021}}
+      {title: '新佳丽时尚广场', location: {lat: 30.5788516, lng: 114.2911021}},
+      {title: '武汉图书馆', location: {lat: 30.6031300, lng: 114.281808}},
+      {title: '武汉二中', location: {lat: 30.6071929, lng: 114.3110464}},
+      {title: '琴台大剧院', location: {lat: 30.5610320, lng: 114.259481}}
     ];
 
     // Style the markers a bit. This will be our listing marker icon.
@@ -235,7 +238,7 @@
 
     // Create a "highlighted location" marker color for when the user
     // mouses over the marker.
-    var highlightedIcon = makeMarkerIcon('FFFF24');
+    var highlightedIcon = makeMarkerIcon('ffff24');
 
     for (var i = 0; i < locations.length; i++) {
       var position = locations[i].location;
@@ -248,7 +251,7 @@
         icon: defaultIcon,
         id: i
       });
-      
+
       markers.push(marker);
       marker.setMap(map);
 
