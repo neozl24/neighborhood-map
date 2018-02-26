@@ -105,13 +105,14 @@
         lat: 30.587,
         lng: 114.272
       },
-      zoom: 13
+      zoom: 12
     });
 
     var placeText = document.getElementById('place-text');
     var filterButton = document.getElementById('filter-button');
     var searchBox = new google.maps.places.SearchBox(placeText);
 
+    var markers = [];
     var placeMarkers = [];
 
     // 将搜索范围限定在屏幕地图范围之内
@@ -223,26 +224,64 @@
 
     var bounds = new google.maps.LatLngBounds();
 
-    var zhongshanPark = {
-      lat: 30.5821,
-      lng: 114.2729
-    };
-    var marker = new google.maps.Marker({
-      position: zhongshanPark,
-      map: map,
-      title: "中山公园",
-      animation: google.maps.Animation.DROP,
-      id: 0
-    });
+    var locations = [
+      {title: '中山公园', location: {lat: 30.582100, lng: 114.272900}},
+      {title: '民生银行大厦', location: {lat: 30.5943940, lng: 114.272755}},
+      {title: '新佳丽时尚广场', location: {lat: 30.5788516, lng: 114.2911021}}
+    ];
 
-    var infoWindow = new google.maps.InfoWindow({
-      content: 'A great place to spend your afternoon at'
-    });
-    marker.addListener('click', function() {
-      infoWindow.open(map, marker);
-      populateInfoWindow(this, infoWindow);
-      // bounds.extend(marker.position);
-    });
+    // Style the markers a bit. This will be our listing marker icon.
+    var defaultIcon = makeMarkerIcon('0091ff');
+
+    // Create a "highlighted location" marker color for when the user
+    // mouses over the marker.
+    var highlightedIcon = makeMarkerIcon('FFFF24');
+
+    for (var i = 0; i < locations.length; i++) {
+      var position = locations[i].location;
+      var title = locations[i].title;
+
+      var marker = new google.maps.Marker({
+        position: position,
+        title: title,
+        animation: google.maps.Animation.DROP,
+        icon: defaultIcon,
+        id: i
+      });
+      
+      markers.push(marker);
+      marker.setMap(map);
+
+      var infoWindow = new google.maps.InfoWindow({
+        content: ''
+      });
+
+      marker.addListener('click', function() {
+        populateInfoWindow(this, infoWindow);
+      });
+
+      marker.addListener('mouseover', function() {
+        this.setIcon(highlightedIcon);
+      });
+
+      marker.addListener('mouseout', function() {
+        this.setIcon(defaultIcon);
+      });
+    }
+
+    // This function takes in a COLOR, and then creates a new marker
+    // icon of that color. The icon will be 21 px wide by 34 high, have an origin
+    // of 0, 0 and be anchored at 10, 34).
+    function makeMarkerIcon(markerColor) {
+      var markerImage = new google.maps.MarkerImage(
+        'http://chart.googleapis.com/chart?chst=d_map_spin&chld=1.15|0|'+ markerColor +
+        '|40|_|%E2%80%A2',
+        new google.maps.Size(21, 34),
+        new google.maps.Point(0, 0),
+        new google.maps.Point(10, 34),
+        new google.maps.Size(21,34));
+      return markerImage;
+    }
 
     function populateInfoWindow(marker, infoWindow) {
       if (infoWindow.marker !== marker) {
