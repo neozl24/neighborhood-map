@@ -392,6 +392,7 @@
         for (var i = 0; i < self.locationList.length; i++) {
           if (self.locationList[i].name === location.name) {
             markers[i].setIcon(highlightedIcon);
+            populateInfoWindow(markers[i], infoWindow);
           }
         }
       };
