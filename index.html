@@ -140,8 +140,6 @@
     var placeText = document.getElementById('place-text');
     var filterButton = document.getElementById('filter-button');
 
-    var markers = [];
-
     // // 使用 places 库来实现地址联想和搜索的功能
     // var searchBox = new google.maps.places.SearchBox(placeText);
     //
@@ -199,6 +197,12 @@
     //     placeMarkers.push(marker);
     //   }
     //   map.fitBounds(bounds);
+    // }
+    //
+    // hideMarkers = function(markers) {
+    //   for (var i = 0; i < markers.length; i++) {
+    //     self.markers[i].setMap(null);
+    //   }
     // }
 
     // 当用户点击某一个 marker 的时候，会读取详细信息
@@ -263,62 +267,11 @@
     //   });
     // }
 
-    function hideMarkers(markers) {
-      for (var i = 0; i < markers.length; i++) {
-        markers[i].setMap(null);
-      }
-    }
-
     // var bounds = new google.maps.LatLngBounds();
-
-    var locations = [
-      {title: '中山公园', location: {lat: 30.582100, lng: 114.272900}},
-      {title: '解放公园', location: {lat: 30.606346, lng: 114.295498}},
-      {title: '民生银行大厦', location: {lat: 30.5943940, lng: 114.272755}},
-      {title: '新佳丽时尚广场', location: {lat: 30.5788516, lng: 114.2911021}},
-      {title: '武汉国际广场', location: {lat: 30.5810010, lng: 114.2706120}},
-      {title: '楚河汉街', location: {lat: 30.5538480, lng: 114.3414150}},
-      {title: '武汉图书馆', location: {lat: 30.6031300, lng: 114.281808}},
-      {title: '武汉二中', location: {lat: 30.6071929, lng: 114.3110464}},
-      {title: '明珠豪生大酒店', location: {lat: 30.5908888, lng: 114.3039332}},
-      {title: '汉口火车站', location: {lat: 30.6154870, lng: 114.2549610}},
-      {title: '琴台大剧院', location: {lat: 30.5610320, lng: 114.2594810}}
-    ];
 
     var defaultIcon = makeMarkerIcon('0091ff');
     var highlightedIcon = makeMarkerIcon('ffff24');
 
-    for (var i = 0; i < locations.length; i++) {
-      var position = locations[i].location;
-      var title = locations[i].title;
-
-      var marker = new google.maps.Marker({
-        position: position,
-        title: title,
-        animation: google.maps.Animation.DROP,
-        icon: defaultIcon,
-        id: i
-      });
-
-      markers.push(marker);
-      marker.setMap(map);
-
-      var infoWindow = new google.maps.InfoWindow({
-        content: ''
-      });
-
-      marker.addListener('click', function() {
-        populateInfoWindow(this, infoWindow);
-      });
-
-      marker.addListener('mouseover', function() {
-        this.setIcon(highlightedIcon);
-      });
-
-      marker.addListener('mouseout', function() {
-        this.setIcon(defaultIcon);
-      });
-    }
 
     // 以颜色为参数，返回一个特定大小的 MarkerImage
     function makeMarkerIcon(markerColor) {
@@ -358,9 +311,54 @@
 
       self.inputText = '';
 
+      self.markers = [];
+
       self.locationList = [];
+
+      var locations = [
+        {title: '中山公园', location: {lat: 30.582100, lng: 114.272900}},
+        {title: '解放公园', location: {lat: 30.606346, lng: 114.295498}},
+        {title: '民生银行大厦', location: {lat: 30.5943940, lng: 114.272755}},
+        {title: '新佳丽时尚广场', location: {lat: 30.5788516, lng: 114.2911021}},
+        {title: '武汉国际广场', location: {lat: 30.5810010, lng: 114.2706120}},
+        {title: '楚河汉街', location: {lat: 30.5538480, lng: 114.3414150}},
+        {title: '武汉图书馆', location: {lat: 30.6031300, lng: 114.281808}},
+        {title: '武汉二中', location: {lat: 30.6071929, lng: 114.3110464}},
+        {title: '明珠豪生大酒店', location: {lat: 30.5908888, lng: 114.3039332}},
+        {title: '汉口火车站', location: {lat: 30.6154870, lng: 114.2549610}},
+        {title: '琴台大剧院', location: {lat: 30.5610320, lng: 114.2594810}}
+      ];
+
       for (var index = 0; index < locations.length; index++) {
-        self.locationList.push(new Location(locations[index].title));
+        var position = locations[index].location;
+        var title = locations[index].title;
+
+        self.locationList.push(new Location(title));
+
+        var marker = new google.maps.Marker({
+          position: position,
+          title: title,
+          animation: google.maps.Animation.DROP,
+          icon: defaultIcon,
+          id: index
+        });
+
+        self.markers.push(marker);
+        marker.setMap(map);
+
+        var infoWindow = new google.maps.InfoWindow({
+          content: ''
+        });
+
+        // 用立即执行的办法绑定标记所对应的索引值，从而改变对应列表项的高亮状态
+        (function(i) {
+          marker.addListener('click', function() {
+            self.clearSelection();
+            this.setIcon(highlightedIcon);
+            populateInfoWindow(this, infoWindow);
+            self.locationList[i].highlight(true);
+          });
+        })(index);
       }
 
       // 筛选地点函数，点击筛选按钮触发
@@ -371,15 +369,15 @@
           var display = self.locationList[i].name.indexOf(keyword) >= 0;
           self.locationList[i].display(display);
           // 同时更新地图内的图标显示
-          markers[i].setMap(display ? map : null);
+          self.markers[i].setMap(display ? map : null);
         }
       };
 
-      // 清除已选中的条目
+      // 清除已选中的条目，并将所有标记恢复至默认状态
       self.clearSelection = function() {
         for (var i = 0; i < self.locationList.length; i++) {
           self.locationList[i].highlight(false);
-          markers[i].setIcon(defaultIcon);
+          self.markers[i].setIcon(defaultIcon);
         }
       };
 
@@ -388,15 +386,14 @@
         self.clearSelection();
         location.highlight(true);
 
-        // 找到对应的 marker
+        // 找到对应的标记，并打开详情窗口
         for (var i = 0; i < self.locationList.length; i++) {
           if (self.locationList[i].name === location.name) {
-            markers[i].setIcon(highlightedIcon);
-            populateInfoWindow(markers[i], infoWindow);
+            self.markers[i].setIcon(highlightedIcon);
+            populateInfoWindow(self.markers[i], infoWindow);
           }
         }
       };
-
     }
 
     ko.applyBindings(new MapViewModel());
