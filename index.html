@@ -106,10 +106,10 @@
 
 <body>
   <div class="options-container">
-    <input type="text" id="place-text" class="filter-input" placeholder="请输入搜索地址">
-    <input type="button" id="filter-button" class="filter-button" value="筛 选">
+    <input type="text" id="place-text" data-bind="value: inputText" class="filter-input" placeholder="请输入搜索地址">
+    <input type="button" id="filter-button" data-bind="click: filterLocations" class="filter-button" value="筛 选">
     <ul data-bind="foreach: locationList" class="location-list">
-      <li data-bind="text: name" class="location-item"></li>
+      <li data-bind="text: name, visible: display()" class="location-item"></li>
     </ul>
   </div>
   <div class="map-container">
@@ -135,89 +135,129 @@
 
     var placeText = document.getElementById('place-text');
     var filterButton = document.getElementById('filter-button');
-    var searchBox = new google.maps.places.SearchBox(placeText);
 
     var markers = [];
-    var placeMarkers = [];
 
-    // 将搜索范围限定在屏幕地图范围之内
-    searchBox.setBounds(map.getBounds());
+    // // 使用 places 库来实现地址联想和搜索的功能
+    // var searchBox = new google.maps.places.SearchBox(placeText);
+    //
+    // // 用来表示搜索地址的图标
+    // var placeMarkers = [];
+    //
+    // // 将搜索范围限定在屏幕地图范围之内
+    // searchBox.setBounds(map.getBounds());
+    //
+    // // 当用户选择了下拉列表中的某一项时，会触发事件，searchbox将得到更多详细信息
+    // searchBox.addListener('places_changed', function() {
+    //   searchBoxPlaces(this);
+    // });
+    //
+    // function searchBoxPlaces(searchBox) {
+    //   hideMarkers(placeMarkers);
+    //   var places = searchBox.getPlaces();
+    //   // 清空之前搜索出来的图标
+    //   placeMarkers = [];
+    //   if (places.length == 0) {
+    //     window.alert('找不到对应地点');
+    //   } else {
+    //     // 返回的 places 对象里面包含有其图标，名字，地址等信息，依据这些可以为它们创建标记
+    //     createMarkersForPlaces(places);
+    //     console.log(places);
+    //   }
+    // }
+    //
+    // function createMarkersForPlaces(places) {
+    //   var bounds = map.getBounds();
+    //   for (var i = 0; i < places.length; i++) {
+    //     var place = places[i];
+    //     var icon = {
+    //       url: place.icon,
+    //       size: new google.maps.Size(35, 35),
+    //       origin: new google.maps.Point(0, 0),
+    //       anchor: new google.maps.Point(15, 34),
+    //       scaledSize: new google.maps.Size(25, 25)
+    //     };
+    //     var marker = new google.maps.Marker({
+    //       map: map,
+    //       icon: icon,
+    //       title: place.name,
+    //       position: place.geometry.location,
+    //       id: place.place_id
+    //     });
+    //     var placeInfoWindow = new google.maps.InfoWindow();
+    //     marker.addListener('click', function() {
+    //       if (placeInfoWindow.marker == this) {
+    //         console.log("This infowindow is already on this marker!");
+    //       } else {
+    //         getPlacesDetails(this, placeInfoWindow);
+    //       }
+    //     });
+    //     placeMarkers.push(marker);
+    //   }
+    //   map.fitBounds(bounds);
+    // }
 
-    // 当用户选择了下拉列表中的某一项时，会触发事件，searchbox将得到更多详细信息
-    searchBox.addListener('places_changed', function() {
-      searchBoxPlaces(this);
-    });
-
-    filterButton.addEventListener('click', filterPlaces);
-
-    function searchBoxPlaces(searchBox) {
-      hideMarkers(placeMarkers);
-      var places = searchBox.getPlaces();
-      if (places.length == 0) {
-        window.alert('找不到对应地点');
-      } else {
-        // For each place, get the icon, name and location.
-        createMarkersForPlaces(places);
-        console.log(places);
-      }
-    }
-
-    function createMarkersForPlaces(places) {
-      var bounds = new google.maps.LatLngBounds();
-      for (var i = 0; i < places.length; i++) {
-        var place = places[i];
-        var icon = {
-          url: place.icon,
-          size: new google.maps.Size(35, 35),
-          origin: new google.maps.Point(0, 0),
-          anchor: new google.maps.Point(15, 34),
-          scaledSize: new google.maps.Size(25, 25)
-        };
-        // Create a marker for each place.
-        var marker = new google.maps.Marker({
-          map: map,
-          icon: icon,
-          title: place.name,
-          position: place.geometry.location,
-          id: place.place_id
-        });
-        // Create a single infowindow to be used with the place details information
-        // so that only one is open at once.
-        var placeInfoWindow = new google.maps.InfoWindow();
-        // If a marker is clicked, do a place details search on it in the next function.
-        marker.addListener('click', function() {
-          if (placeInfoWindow.marker == this) {
-            console.log("This infowindow already is on this marker!");
-          } else {
-            getPlacesDetails(this, placeInfoWindow);
+    // 当用户点击某一个 marker 的时候，会读取详细信息
+    function getPlacesDetails(marker, infowindow) {
+      var service = new google.maps.places.PlacesService(map);
+      service.getDetails({
+        placeId: marker.id
+      }, function(place, status) {
+        if (status === google.maps.places.PlacesServiceStatus.OK) {
+          // Set the marker property on this infowindow so it isn't created again.
+          infowindow.marker = marker;
+          var innerHTML = '<div>';
+          if (place.name) {
+            innerHTML += '<strong>' + place.name + '</strong>';
           }
-        });
-        placeMarkers.push(marker);
-        // if (place.geometry.viewport) {
-        //   // Only geocodes have viewport.
-        //   bounds.union(place.geometry.viewport);
-        // } else {
-        //   bounds.extend(place.geometry.location);
-        // }
-      }
-      map.fitBounds(bounds);
+          if (place.formatted_address) {
+            innerHTML += '<br>' + place.formatted_address;
+          }
+          if (place.formatted_phone_number) {
+            innerHTML += '<br>' + place.formatted_phone_number;
+          }
+          if (place.opening_hours) {
+            innerHTML += '<br><br><strong>Hours:</strong><br>' +
+              place.opening_hours.weekday_text[0] + '<br>' +
+              place.opening_hours.weekday_text[1] + '<br>' +
+              place.opening_hours.weekday_text[2] + '<br>' +
+              place.opening_hours.weekday_text[3] + '<br>' +
+              place.opening_hours.weekday_text[4] + '<br>' +
+              place.opening_hours.weekday_text[5] + '<br>' +
+              place.opening_hours.weekday_text[6];
+          }
+          if (place.photos) {
+            innerHTML += '<br><br><img src="' +
+              place.photos[0].getUrl({maxHeight: 100, maxWidth: 200}) + '">';
+          }
+          innerHTML += '</div>';
+          infowindow.setContent(innerHTML);
+          infowindow.open(map, marker);
+          // Make sure the marker property is cleared if the infowindow is closed.
+          infowindow.addListener('closeclick', function() {
+            infowindow.marker = null;
+          });
+        }
+      });
     }
 
-    function filterPlaces() {
-      var bounds = map.getBounds();
-        hideMarkers(placeMarkers);
-        var placesService = new google.maps.places.PlacesService(map);
-        placesService.textSearch({
-          query: placeText.value,
-          bounds: bounds
-        }, function(results, status) {
-          if (status === google.maps.places.PlacesServiceStatus.OK) {
-            createMarkersForPlaces(results);
-          } else {
-            window.alert('找不到相关地址');
-          }
-        });
-    }
+    // searchButton.addEventListener('click', searchPlaces);
+    //
+    // function searchPlaces() {
+    //   var bounds = map.getBounds();
+    //   hideMarkers(placeMarkers);
+    //   var placesService = new google.maps.places.PlacesService(map);
+    //   placesService.textSearch({
+    //     query: placeText.value,
+    //     bounds: bounds
+    //   }, function(results, status) {
+    //     if (status === google.maps.places.PlacesServiceStatus.OK) {
+    //       createMarkersForPlaces(results);
+    //     } else {
+    //       window.alert('找不到相关地址');
+    //     }
+    //   });
+    // }
 
     function hideMarkers(markers) {
       for (var i = 0; i < markers.length; i++) {
@@ -225,7 +265,7 @@
       }
     }
 
-    var bounds = new google.maps.LatLngBounds();
+    // var bounds = new google.maps.LatLngBounds();
 
     var locations = [
       {title: '中山公园', location: {lat: 30.582100, lng: 114.272900}},
@@ -241,11 +281,7 @@
       {title: '琴台大剧院', location: {lat: 30.5610320, lng: 114.2594810}}
     ];
 
-    // Style the markers a bit. This will be our listing marker icon.
     var defaultIcon = makeMarkerIcon('0091ff');
-
-    // Create a "highlighted location" marker color for when the user
-    // mouses over the marker.
     var highlightedIcon = makeMarkerIcon('ffff24');
 
     for (var i = 0; i < locations.length; i++) {
@@ -280,9 +316,7 @@
       });
     }
 
-    // This function takes in a COLOR, and then creates a new marker
-    // icon of that color. The icon will be 21 px wide by 34 high, have an origin
-    // of 0, 0 and be anchored at 10, 34).
+    // 以颜色为参数，返回一个特定大小的 MarkerImage
     function makeMarkerIcon(markerColor) {
       var markerImage = new google.maps.MarkerImage(
         'http://chart.googleapis.com/chart?chst=d_map_spin&chld=1.15|0|'+ markerColor +
@@ -312,19 +346,29 @@
       // 新建这个列表项时，默认是不处于高亮状态的，但这个状态会在之后的点击时被触发
       self.highlight = ko.observable(false);
       // 默认状态下，该列表项处于显示状态，但是改变筛选条件后，可能会隐藏掉
-      self.display = ko.observable(false);
+      self.display = ko.observable(true);
     }
 
     function MapViewModel() {
       var self = this;
+
+      self.inputText = '';
+
       self.locationList = [];
-      for (var i = 0; i < locations.length; i++) {
-        self.locationList.push(new Location(locations[i].title));
+      for (var index = 0; index < locations.length; index++) {
+        self.locationList.push(new Location(locations[index].title));
       }
 
-      // 筛选地点函数，会在输入框值发生改变时被触发
+      // 筛选地点函数，点击筛选按钮触发
       self.filterLocations = function() {
-        // TODO
+        for (var i = 0; i < self.locationList.length; i++) {
+          // 过滤掉输入内容里的空格
+          var keyword = self.inputText.replace(/[ ]/g, '');
+          var display = self.locationList[i].name.indexOf(keyword) >= 0;
+          self.locationList[i].display(display);
+          // 同时更新地图内的图标显示
+          markers[i].setMap(display ? map : null);
+        }
       }
     }
 
