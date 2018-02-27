@@ -379,6 +379,7 @@
       self.clearSelection = function() {
         for (var i = 0; i < self.locationList.length; i++) {
           self.locationList[i].highlight(false);
+          markers[i].setIcon(defaultIcon);
         }
       };
 
@@ -386,6 +387,13 @@
       self.selectItem = function(location) {
         self.clearSelection();
         location.highlight(true);
+
+        // 找到对应的 marker
+        for (var i = 0; i < self.locationList.length; i++) {
+          if (self.locationList[i].name === location.name) {
+            markers[i].setIcon(highlightedIcon);
+          }
+        }
       };
 
     }
