@@ -140,71 +140,6 @@
     var placeText = document.getElementById('place-text');
     var filterButton = document.getElementById('filter-button');
 
-    // // 使用 places 库来实现地址联想和搜索的功能
-    // var searchBox = new google.maps.places.SearchBox(placeText);
-    //
-    // // 用来表示搜索地址的图标
-    // var placeMarkers = [];
-    //
-    // // 将搜索范围限定在屏幕地图范围之内
-    // searchBox.setBounds(map.getBounds());
-    //
-    // // 当用户选择了下拉列表中的某一项时，会触发事件，searchbox将得到更多详细信息
-    // searchBox.addListener('places_changed', function() {
-    //   searchBoxPlaces(this);
-    // });
-    //
-    // function searchBoxPlaces(searchBox) {
-    //   hideMarkers(placeMarkers);
-    //   var places = searchBox.getPlaces();
-    //   // 清空之前搜索出来的图标
-    //   placeMarkers = [];
-    //   if (places.length == 0) {
-    //     window.alert('找不到对应地点');
-    //   } else {
-    //     // 返回的 places 对象里面包含有其图标，名字，地址等信息，依据这些可以为它们创建标记
-    //     createMarkersForPlaces(places);
-    //     console.log(places);
-    //   }
-    // }
-    //
-    // function createMarkersForPlaces(places) {
-    //   var bounds = map.getBounds();
-    //   for (var i = 0; i < places.length; i++) {
-    //     var place = places[i];
-    //     var icon = {
-    //       url: place.icon,
-    //       size: new google.maps.Size(35, 35),
-    //       origin: new google.maps.Point(0, 0),
-    //       anchor: new google.maps.Point(15, 34),
-    //       scaledSize: new google.maps.Size(25, 25)
-    //     };
-    //     var marker = new google.maps.Marker({
-    //       map: map,
-    //       icon: icon,
-    //       title: place.name,
-    //       position: place.geometry.location,
-    //       id: place.place_id
-    //     });
-    //     var placeInfoWindow = new google.maps.InfoWindow();
-    //     marker.addListener('click', function() {
-    //       if (placeInfoWindow.marker == this) {
-    //         console.log("This infowindow is already on this marker!");
-    //       } else {
-    //         getPlacesDetails(this, placeInfoWindow);
-    //       }
-    //     });
-    //     placeMarkers.push(marker);
-    //   }
-    //   map.fitBounds(bounds);
-    // }
-    //
-    // hideMarkers = function(markers) {
-    //   for (var i = 0; i < markers.length; i++) {
-    //     self.markers[i].setMap(null);
-    //   }
-    // }
-
     // 当用户点击某一个 marker 的时候，会读取详细信息
     function getPlacesDetails(marker, infowindow) {
       var service = new google.maps.places.PlacesService(map);
@@ -248,24 +183,6 @@
         }
       });
     }
-
-    // searchButton.addEventListener('click', searchPlaces);
-    //
-    // function searchPlaces() {
-    //   var bounds = map.getBounds();
-    //   hideMarkers(placeMarkers);
-    //   var placesService = new google.maps.places.PlacesService(map);
-    //   placesService.textSearch({
-    //     query: placeText.value,
-    //     bounds: bounds
-    //   }, function(results, status) {
-    //     if (status === google.maps.places.PlacesServiceStatus.OK) {
-    //       createMarkersForPlaces(results);
-    //     } else {
-    //       window.alert('找不到相关地址');
-    //     }
-    //   });
-    // }
 
     // var bounds = new google.maps.LatLngBounds();
 
