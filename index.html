@@ -94,6 +94,9 @@
   .location-item:active {
     background-color: rgba(20, 30, 50, 0.8);
   }
+  .location-item-selected {
+    background-color: rgba(55, 65, 120, 0.8) !important;
+  }
   .map {
     position: absolute;
     top: 40px;
@@ -106,10 +109,11 @@
 
 <body>
   <div class="options-container">
-    <input type="text" id="place-text" data-bind="value: inputText" class="filter-input" placeholder="请输入搜索地址">
+    <input type="text" id="place-text" data-bind="value: inputText" class="filter-input" placeholder="请输入地址名或关键字">
     <input type="button" id="filter-button" data-bind="click: filterLocations" class="filter-button" value="筛 选">
     <ul data-bind="foreach: locationList" class="location-list">
-      <li data-bind="text: name, visible: display()" class="location-item"></li>
+      <li data-bind="text: name, visible: display(), click: $root.selectItem,
+        css: {'location-item-selected': highlight()}" class="location-item"></li>
     </ul>
   </div>
   <div class="map-container">
@@ -369,7 +373,21 @@
           // 同时更新地图内的图标显示
           markers[i].setMap(display ? map : null);
         }
-      }
+      };
+
+      // 清除已选中的条目
+      self.clearSelection = function() {
+        for (var i = 0; i < self.locationList.length; i++) {
+          self.locationList[i].highlight(false);
+        }
+      };
+
+      // 点击列表项，会让该条目变为高亮状态，对应的地图图标也会随之变化
+      self.selectItem = function(location) {
+        self.clearSelection();
+        location.highlight(true);
+      };
+
     }
 
     ko.applyBindings(new MapViewModel());
