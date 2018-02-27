@@ -311,6 +311,9 @@
 
       self.inputText = '';
 
+      // 本来不准备把 markers 放在 ViewModel 里面的，但是它的点击事件涉及到 locationList 的状态变化，
+      // 也就是说 markers 的状态和 ViewModel 产生了关联，因此将 markers 声明为了 ViewModel 内部的数组，
+      // 方便接下来要写的 marker 点击事件回调函数
       self.markers = [];
 
       self.locationList = [];
@@ -329,6 +332,7 @@
         {title: '琴台大剧院', location: {lat: 30.5610320, lng: 114.2594810}}
       ];
 
+      // 遍历 locations 数组，创建对应的列表条目和地图标记，并给标记绑定点击事件
       for (var index = 0; index < locations.length; index++) {
         var position = locations[index].location;
         var title = locations[index].title;
