@@ -172,8 +172,7 @@
             if (baiduLocal.getStatus() == BMAP_STATUS_SUCCESS) {
               // 如果成功返回
               var theFirstResult = results.getPoi(0);
-              // console.log(theFirstResult.address);
-              console.log(theFirstResult);
+              // console.log(theFirstResult);
               innerHTML += '<p>地址：' + theFirstResult.address + '</p>';
               innerHTML += '<a href="' + theFirstResult.detailUrl + '" target="_blank">点击查看详情</a>';
 
@@ -217,8 +216,10 @@
       // 方便接下来要写的 marker 点击事件回调函数
       self.markers = [];
 
+      // 应用中左侧的列表的数据来源
       self.locationList = [];
 
+      // 原始地址列表，包含基本信息
       var locations = [
         {title: '中山公园', location: {lat: 30.582100, lng: 114.272900}},
         {title: '解放公园', location: {lat: 30.606346, lng: 114.295498}},
@@ -256,7 +257,9 @@
           content: ''
         });
 
-        // 用立即执行的办法绑定标记所对应的索引值，从而改变对应列表项的高亮状态
+        // self.locationList 和 self.markers 具有相同的长度，并且它们一一对应，
+        // 利用索引值来保证点击图标的时候，也能改变列表项的高亮状态。
+        // 注意，既然涉及到索引值，就需要用到立即执行的办法来绑定
         (function(i) {
           marker.addListener('click', function() {
             self.clearSelection();
