@@ -140,52 +140,6 @@
     var placeText = document.getElementById('place-text');
     var filterButton = document.getElementById('filter-button');
 
-    // 当用户点击某一个 marker 的时候，会读取详细信息
-    function getPlacesDetails(marker, infowindow) {
-      var service = new google.maps.places.PlacesService(map);
-      service.getDetails({
-        placeId: marker.id
-      }, function(place, status) {
-        if (status === google.maps.places.PlacesServiceStatus.OK) {
-          // Set the marker property on this infowindow so it isn't created again.
-          infowindow.marker = marker;
-          var innerHTML = '<div>';
-          if (place.name) {
-            innerHTML += '<strong>' + place.name + '</strong>';
-          }
-          if (place.formatted_address) {
-            innerHTML += '<br>' + place.formatted_address;
-          }
-          if (place.formatted_phone_number) {
-            innerHTML += '<br>' + place.formatted_phone_number;
-          }
-          if (place.opening_hours) {
-            innerHTML += '<br><br><strong>Hours:</strong><br>' +
-              place.opening_hours.weekday_text[0] + '<br>' +
-              place.opening_hours.weekday_text[1] + '<br>' +
-              place.opening_hours.weekday_text[2] + '<br>' +
-              place.opening_hours.weekday_text[3] + '<br>' +
-              place.opening_hours.weekday_text[4] + '<br>' +
-              place.opening_hours.weekday_text[5] + '<br>' +
-              place.opening_hours.weekday_text[6];
-          }
-          if (place.photos) {
-            innerHTML += '<br><br><img src="' +
-              place.photos[0].getUrl({maxHeight: 100, maxWidth: 200}) + '">';
-          }
-          innerHTML += '</div>';
-          infowindow.setContent(innerHTML);
-          infowindow.open(map, marker);
-          // Make sure the marker property is cleared if the infowindow is closed.
-          infowindow.addListener('closeclick', function() {
-            infowindow.marker = null;
-          });
-        }
-      });
-    }
-
-    // var bounds = new google.maps.LatLngBounds();
-
     var defaultIcon = makeMarkerIcon('0091ff');
     var highlightedIcon = makeMarkerIcon('ffff24');
 
@@ -202,11 +156,41 @@
       return markerImage;
     }
 
+    // 这个百度地图只是作为后面的参数使用，并不用来展示
+    var baiduMap = new BMap.Map("");
+
     function populateInfoWindow(marker, infoWindow) {
       if (infoWindow.marker !== marker) {
         infoWindow.marker = marker;
-        infoWindow.setContent('<div>' + marker.title + '</div>');
-        infoWindow.open(map, marker);
+
+        // 调用第三方（百度地图）api 来获取地址详情
+        var options = {
+          onSearchComplete: function(results) {
+            var innerHTML = '<div>';
+            innerHTML += '<div>' + marker.title + '</div>';
+
+            if (baiduLocal.getStatus() == BMAP_STATUS_SUCCESS) {
+              // 如果成功返回
+              var theFirstResult = results.getPoi(0);
+              // console.log(theFirstResult.address);
+              console.log(theFirstResult);
+              innerHTML += '<p>地址：' + theFirstResult.address + '</p>';
+              innerHTML += '<a href="' + theFirstResult.detailUrl + '" target="_blank">点击查看详情</a>';
+
+            } else {
+              // 如果返回的状态不对
+              innerHTML += '<p>获取详情失败，请重新点击图标或者刷新页面再试</p>';
+            }
+
+            innerHTML += '</div>'
+
+            infoWindow.setContent(innerHTML);
+            infoWindow.open(map, marker);
+          }
+        };
+        var baiduLocal = new BMap.LocalSearch(baiduMap, options);
+        baiduLocal.search('武汉市' + marker.title);
+
         infoWindow.addListener('closeclick', function() {
           infoWindow.marker = null;
         });
@@ -241,7 +225,8 @@
         {title: '民生银行大厦', location: {lat: 30.5943940, lng: 114.272755}},
         {title: '新佳丽时尚广场', location: {lat: 30.5788516, lng: 114.2911021}},
         {title: '武汉国际广场', location: {lat: 30.5810010, lng: 114.2706120}},
-        {title: '楚河汉街', location: {lat: 30.5538480, lng: 114.3414150}},
+        {title: '万达国际影城', location: {lat: 30.5778940, lng: 114.2918870}},
+        {title: '万达电影乐园', location: {lat: 30.5597469, lng: 114.3334468}},
         {title: '武汉图书馆', location: {lat: 30.6031300, lng: 114.281808}},
         {title: '武汉二中', location: {lat: 30.6071929, lng: 114.3110464}},
         {title: '明珠豪生大酒店', location: {lat: 30.5908888, lng: 114.3039332}},
@@ -321,8 +306,8 @@
   }
   </script>
 
-  <script async defer src="https://maps.googleapis.com/maps/api/js?libraries=places&key=AIzaSyAbrsJBAgSnyTQOpOT-WSpOfSnRx99HIrE&v=3&callback=initMap">
-  </script>
+  <script type="text/javascript" src="http://api.map.baidu.com/api?v=3.0&ak=mNilzNGPs2miKtzMFMLRhvsfI4cWFNqX"></script>
+  <script async defer src="https://maps.googleapis.com/maps/api/js?libraries=places&key=AIzaSyAbrsJBAgSnyTQOpOT-WSpOfSnRx99HIrE&v=3&callback=initMap"></script>
 </body>
 
 </html>
