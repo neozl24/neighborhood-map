@@ -1,2 +1,15 @@
 # neighborhood-map
-a project using Google map API and knockout.js
+a map project using Google map API and knockout.js
+
+
+### 如何使用
+下载项目后，直接打开index.html即可看到应用界面。左侧列表显示默认地址，在搜索框中输入文字，点击“筛选”按钮，会对列表地址进行筛选，同时地图内的地址标记也会对应地被过滤。选中列表项或者地图标记，都会改变标记颜色，同时弹出信息窗口，展示由baidu api得到的详细信息。无论是项目过滤还是选中高亮，左侧列表和地图内的标记始终保持状态联动。
+
+### 实现思路
+得益于knockout.js这个MVVM框架，我们将视图层和实际操作的数据进行了绑定，从而形成了不同组件之间的联动效果。
+
+将左侧列表中的每一个列表项看作一个实例对象，它除了拥有name属性来表示文字之外，还有 highlight 和 display 这两个由 knockout 所监控的属性。点击它会将其 highlight 属性置为 true（同时将其它所有列表项的 highlight 置为 false），因此动态绑定的 css style 就能为其加上高亮的样式。类似的原理，搜索框内输入文字内容，点击“筛选”按钮触发相应的比照函数，更新每一个列表项的 display 属性，从而动态地控制其是否在 html 中被显示出来。
+
+一个值得说明的地方是，点击地图上的 marker 会改变左侧列表项的高亮显示，也就是说会影响 ViewModel 的数据变化，因此我将 markers 数组也加到了 ViewModel 内部，从而方便在 marker 的点击回调函数里执行 ViewModel 内部的方法。
+
+另外，根据 knockout 官网的示例教程（Tutorial: Introduction），input内的文字信息变化，只有在光标点击了输入框以外的时候，才会真正地触发数据模型的变化，从而改变相关的 computed 数据，因此我目前认为，使用 knockout，没法让输入内容及时反映到数据层，必须在完成输入之后，点击输入框外面或者点击相关按钮，才能触发相应的函数。也是由于这个原因，地址的筛选不是完全及时的，而是需要输入完毕之后点击一下“筛选”按钮。
