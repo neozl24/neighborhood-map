@@ -141,6 +141,10 @@
     var defaultIcon = makeMarkerIcon('0091ff');
     var highlightedIcon = makeMarkerIcon('ffff24');
 
+    // 一个公用的 infoWindow，整个页面只有这一个 infoWindow 存在，也就是说一次只能打开一个
+    var infoWindow = new google.maps.InfoWindow({
+      content: ''
+    });
 
     // 以颜色为参数，返回一个特定大小的 MarkerImage，下面这个函数参考了 Udacity 的地图课程
     function makeMarkerIcon(markerColor) {
@@ -251,10 +255,6 @@
         self.markers.push(marker);
         marker.setMap(map);
 
-        var infoWindow = new google.maps.InfoWindow({
-          content: ''
-        });
-
         // self.locationList 和 self.markers 具有相同的长度，并且它们一一对应，
         // 利用索引值来保证点击图标的时候，也能改变列表项的高亮状态。
         // 注意，既然涉及到索引值，就需要用到立即执行的办法来绑定
@@ -270,6 +270,10 @@
 
       // 筛选地点函数，点击筛选按钮触发
       self.filterLocations = function() {
+
+        // 先清除已选中的条目，再依次判断每一个条目，是否符合名字筛选
+        self.clearSelection();
+
         for (var i = 0; i < self.locationList.length; i++) {
           // 过滤掉输入内容里的空格
           var keyword = self.inputText.replace(/[ ]/g, '');
@@ -286,6 +290,9 @@
           self.locationList[i].highlight(false);
           self.markers[i].setIcon(defaultIcon);
         }
+        // 记得把 infoWindow 给关掉
+        infoWindow.close();
+        infoWindow.marker = null;
       };
 
       // 点击列表项，会让该条目变为高亮状态，对应的地图图标也会随之变化
